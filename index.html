@@ -564,7 +564,7 @@ async function analyzePhoto(){
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
+        model:"claude-sonnet-4-5",
         max_tokens:1000,
         system:`Sos nutricionista especializado en diabetes tipo 1 para Argentina. Respondé SOLO con JSON sin backticks: {"alimentos":[{"nombre":"...","porcion":"...","carbohidratos":número}],"total":número,"nota":"..."}. Porciones típicas argentinas. carbohidratos=entero.`,
         messages:[{role:"user",content:[
