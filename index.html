@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Insulina</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f1117;color:#e8e9f0;font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:56px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+
+.header{background:linear-gradient(135deg,#1a1d27,#141720);border-bottom:1px solid #2e3148;padding:20px 18px 14px;position:sticky;top:0;z-index:10}
+.header-row{display:flex;align-items:center;gap:10px;margin-bottom:3px}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,#7c6af7,#5b4fcf);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.h1{font-size:17px;font-weight:600;letter-spacing:-0.3px}
+.sub{font-size:11px;color:#5a5e78;margin-left:44px}
+
+/* PERFIL */
+.perfil-bar{margin:14px 18px 0;background:#1a1d27;border:1px solid #2e3148;border-radius:11px;padding:10px 13px}
+.perfil-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.perfil-row:last-child{margin-bottom:0}
+.perfil-label{font-size:12px;color:#8b8fa8}
+.perfil-val{font-family:'DM Mono',monospace;font-size:12px;color:#a78bfa;font-weight:500}
+.perfil-edit{font-size:11px;color:#5a5e78;background:#222535;border:1px solid #2e3148;padding:3px 9px;border-radius:7px;cursor:pointer;font-family:inherit}
+
+/* TABS */
+.tabs{display:flex;margin:14px 18px 0;background:#1a1d27;border:1px solid #2e3148;border-radius:11px;padding:3px}
+.tab{flex:1;padding:9px 4px;text-align:center;font-size:12px;font-weight:500;color:#5a5e78;cursor:pointer;border-radius:8px;border:1px solid transparent;background:none;font-family:inherit;transition:all .15s}
+.tab.active{color:#e8e9f0;border-color:#2e3148;background:#222535}
+
+.main{padding:16px 18px 0}
+.panel{display:none}.panel.active{display:block}
+.section-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#5a5e78;margin-bottom:10px}
+
+/* CORRECCIÓN */
+.corr-card{background:#1a1d27;border:1px solid #2e3148;border-radius:14px;padding:14px;margin-bottom:14px}
+.corr-card h3{font-size:13px;font-weight:600;margin-bottom:3px}
+.corr-card p{font-size:12px;color:#8b8fa8;margin-bottom:12px}
+.gluc-input-row{display:flex;gap:9px;align-items:center}
+.gluc-input-row input{flex:1;background:#0f1117;border:1px solid #2e3148;border-radius:9px;color:#e8e9f0;font-family:'DM Mono',monospace;font-size:22px;padding:10px 12px;outline:none;text-align:center;-webkit-appearance:none}
+.gluc-input-row input:focus{border-color:#7c6af7}
+.gluc-unit{font-size:12px;color:#5a5e78;white-space:nowrap}
+.corr-result{margin-top:12px;border-radius:11px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between}
+.corr-result.ok{background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2)}
+.corr-result.high{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2)}
+.corr-result.low{background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.2)}
+.corr-result-label{font-size:13px}
+.corr-result.ok .corr-result-label{color:#34d399}
+.corr-result.high .corr-result-label{color:#fbbf24}
+.corr-result.low .corr-result-label{color:#60a5fa}
+.corr-result-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:500}
+.corr-result.ok .corr-result-val{color:#34d399}
+.corr-result.high .corr-result-val{color:#fbbf24}
+.corr-result.low .corr-result-val{color:#60a5fa}
+
+/* LENTA */
+.lenta-card{background:rgba(124,106,247,0.07);border:1px solid rgba(124,106,247,0.2);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.lenta-icon{font-size:28px}
+.lenta-info h3{font-size:14px;font-weight:600;margin-bottom:2px}
+.lenta-info p{font-size:12px;color:#8b8fa8}
+.lenta-dose{font-family:'DM Mono',monospace;font-size:28px;color:#a78bfa;font-weight:300;margin-left:auto}
+
+/* RESUMEN TOTAL */
+.total-card{background:#1a1d27;border:1px solid #2e3148;border-radius:18px;padding:18px;margin-bottom:10px;position:relative;overflow:hidden}
+.total-top{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c6af7,#34d399)}
+.total-block{text-align:center;padding:14px 0 8px}
+.total-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#5a5e78;margin-bottom:3px}
+.total-num{font-family:'DM Mono',monospace;font-size:64px;font-weight:300;color:#34d399;line-height:1}
+.total-unit{font-size:13px;color:#8b8fa8;margin-top:3px}
+.total-breakdown{border-top:1px solid #2e3148;margin-top:8px}
+.breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2e3148}
+.breakdown-row:last-child{border-bottom:none;padding-bottom:0}
+.breakdown-label{font-size:12px;color:#8b8fa8}
+.breakdown-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:#e8e9f0}
+.breakdown-val.yellow{color:#fbbf24}
+.breakdown-val.purple{color:#a78bfa}
+
+/* FORM */
+.card{background:#1a1d27;border:1px solid #2e3148;border-radius:14px;padding:14px;margin-bottom:14px}
+input[type=text],input[type=number]{width:100%;background:#0f1117;border:1px solid #2e3148;border-radius:9px;color:#e8e9f0;font-family:inherit;font-size:15px;padding:10px 12px;outline:none;margin-bottom:9px;-webkit-appearance:none}
+input:focus{border-color:#7c6af7}
+input::placeholder{color:#5a5e78}
+.form-row{display:flex;gap:9px}
+.form-row input{margin-bottom:0;flex:1}
+.btn-add{background:linear-gradient(135deg,#7c6af7,#5b4fcf);border:none;color:white;font-family:inherit;font-size:15px;font-weight:600;padding:10px 18px;border-radius:9px;cursor:pointer;white-space:nowrap}
+
+.quick-sub{font-size:11px;color:#5a5e78;margin-bottom:8px;font-weight:500}
+.cat-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.cat-pill{background:#222535;border:1px solid #2e3148;border-radius:20px;padding:5px 11px;font-size:11px;color:#8b8fa8;cursor:pointer;transition:all .15s}
+.cat-pill.active{background:rgba(124,106,247,0.12);border-color:#7c6af7;color:#a78bfa}
+.quick-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.q-pill{background:#222535;border:1px solid #2e3148;border-radius:20px;padding:7px 12px;font-size:12px;color:#8b8fa8;cursor:pointer;display:flex;align-items:center;gap:5px}
+.q-pill .g{color:#5a5e78;font-size:11px;font-family:'DM Mono',monospace}
+
+.divider{height:1px;background:#2e3148;margin:2px 0 14px}
+.food-item{background:#1a1d27;border:1px solid #2e3148;border-radius:11px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:11px;animation:fadeIn .2s ease}
+.food-icon{width:34px;height:34px;background:#222535;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.food-info{flex:1;min-width:0}
+.food-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.food-carbs{font-size:12px;color:#8b8fa8;font-family:'DM Mono',monospace;margin-top:2px}
+.food-carbs span{color:#fbbf24}
+.food-source{font-size:10px;color:#a78bfa;margin-top:1px;font-style:italic}
+.btn-rm{background:none;border:none;color:#5a5e78;cursor:pointer;font-size:20px;padding:3px;line-height:1;flex-shrink:0}
+.empty{text-align:center;padding:26px 16px;color:#5a5e78;background:#1a1d27;border:1px dashed #2e3148;border-radius:14px;margin-bottom:14px;font-size:13px;line-height:1.5}
+
+.result-card{background:#1a1d27;border:1px solid #2e3148;border-radius:18px;padding:18px;margin-bottom:10px;position:relative;overflow:hidden}
+.result-top{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c6af7,#34d399);opacity:0;transition:opacity .3s}
+.result-top.on{opacity:1}
+.insulin-block{text-align:center;padding:14px 0 6px}
+.insulin-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#5a5e78;margin-bottom:3px}
+.insulin-num{font-family:'DM Mono',monospace;font-size:60px;font-weight:300;color:#34d399;line-height:1}
+.insulin-unit{font-size:13px;color:#8b8fa8;margin-top:3px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #2e3148}
+.result-row:last-child{border-bottom:none;padding-bottom:0}
+.result-label{font-size:13px;color:#8b8fa8}
+.result-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:500}
+.result-val.yellow{color:#fbbf24}
+
+.btn-clear{width:100%;background:none;border:1px solid #2e3148;color:#5a5e78;font-family:inherit;font-size:13px;padding:11px;border-radius:11px;cursor:pointer;margin-top:4px}
+.warning{background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.18);border-radius:11px;padding:11px 13px;font-size:12px;color:#fbbf24;line-height:1.5;margin-top:11px;display:flex;gap:7px}
+
+/* FOTO */
+.photo-zone{border:2px dashed #2e3148;border-radius:18px;padding:28px 18px;text-align:center;background:#1a1d27;margin-bottom:14px}
+.photo-zone h3{font-size:16px;font-weight:600;margin-bottom:4px}
+.photo-zone p{font-size:13px;color:#8b8fa8;line-height:1.4;margin-bottom:16px}
+.photo-btns{display:flex;gap:9px}
+.btn-camera{flex:1;background:linear-gradient(135deg,#7c6af7,#5b4fcf);border:none;color:white;font-family:inherit;font-size:14px;font-weight:600;padding:11px 8px;border-radius:11px;cursor:pointer}
+.btn-gallery{flex:1;background:#222535;border:1px solid #2e3148;color:#e8e9f0;font-family:inherit;font-size:14px;font-weight:600;padding:11px 8px;border-radius:11px;cursor:pointer}
+.preview-wrap{margin-bottom:14px;position:relative}
+.preview-img{width:100%;border-radius:14px;display:block;border:1px solid #2e3148;max-height:260px;object-fit:cover}
+.btn-rm-photo{position:absolute;top:9px;right:9px;background:rgba(0,0,0,0.72);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+.btn-analyze{width:100%;background:linear-gradient(135deg,#60a5fa,#3b82f6);border:none;color:white;font-family:inherit;font-size:15px;font-weight:600;padding:13px;border-radius:13px;cursor:pointer;margin-bottom:14px}
+.btn-analyze:disabled{background:#1a1d27;border:1px solid #2e3148;color:#5a5e78;cursor:not-allowed}
+.loading{text-align:center;padding:18px 0;display:none}
+.loading.on{display:block}
+.spinner{width:36px;height:36px;border:3px solid #2e3148;border-top-color:#60a5fa;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+.err-msg{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:11px;padding:11px 13px;font-size:13px;color:#f87171;margin-bottom:12px;display:none}
+.err-msg.on{display:block}
+.ai-card{background:#1a1d27;border:1px solid #2e3148;border-radius:14px;padding:14px;margin-bottom:14px;display:none}
+.ai-card.on{display:block;animation:fadeIn .3s ease}
+.ai-title{font-size:11px;color:#5a5e78;letter-spacing:.5px;text-transform:uppercase;font-weight:600;margin-bottom:11px}
+.ai-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #2e3148}
+.ai-row:last-child{border-bottom:none}
+.ai-food-name{font-size:13px}
+.ai-food-portion{font-size:11px;color:#5a5e78}
+.ai-food-carbs{font-family:'DM Mono',monospace;font-size:13px;color:#fbbf24}
+.ai-total{background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.18);border-radius:11px;padding:11px 13px;margin-top:11px;display:flex;align-items:center;justify-content:space-between}
+.ai-total-label{font-size:13px;color:#34d399;font-weight:500}
+.ai-total-val{font-family:'DM Mono',monospace;font-size:18px;color:#34d399;font-weight:500}
+.btn-add-plate{width:100%;background:linear-gradient(135deg,#34d399,#059669);border:none;color:#0f1117;font-family:inherit;font-size:15px;font-weight:700;padding:12px;border-radius:11px;cursor:pointer;margin-top:11px}
+.ai-note{font-size:11px;color:#5a5e78;margin-top:8px;font-style:italic}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:100;align-items:flex-end}
+.modal-overlay.open{display:flex}
+.modal{background:#1a1d27;border:1px solid #2e3148;border-radius:18px 18px 0 0;padding:22px 18px 30px;width:100%}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:5px}
+.modal p{font-size:13px;color:#8b8fa8;margin-bottom:16px}
+.modal label{font-size:12px;color:#8b8fa8;display:block;margin-bottom:5px;margin-top:10px}
+.modal input{width:100%;background:#0f1117;border:1px solid #2e3148;border-radius:9px;color:#e8e9f0;font-family:'DM Mono',monospace;font-size:18px;padding:10px 13px;margin-bottom:4px;outline:none;-webkit-appearance:none}
+.modal input:focus{border-color:#7c6af7}
+.modal-actions{display:flex;gap:9px;margin-top:16px}
+.btn-cancel{flex:1;background:#222535;border:1px solid #2e3148;color:#8b8fa8;padding:11px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500}
+.btn-save{flex:2;background:#7c6af7;border:none;color:white;padding:11px;border-radius:11px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div class="logo">💉</div>
+    <div class="h1">Calculadora de Insulina</div>
+  </div>
+  <div class="sub">Diabetes tipo 1 · Conteo de carbohidratos</div>
+</div>
+
+<!-- PERFIL -->
+<div class="perfil-bar">
+  <div class="perfil-row">
+    <span class="perfil-label">🍽 Insulina por comida</span>
+    <span class="perfil-val" id="pRatio">1u / 15g carbs</span>
+  </div>
+  <div class="perfil-row">
+    <span class="perfil-label">📉 Factor de corrección</span>
+    <span class="perfil-val" id="pCorr">1u baja 50 mg/dL</span>
+  </div>
+  <div class="perfil-row">
+    <span class="perfil-label">🌙 Insulina lenta (noche)</span>
+    <span class="perfil-val" id="pLenta">8 unidades</span>
+  </div>
+  <div style="text-align:right;margin-top:8px">
+    <button class="perfil-edit" onclick="openConfig()">Editar perfil</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" id="tab-comida-btn" onclick="switchTab('comida')">🍽 Comida</button>
+  <button class="tab" id="tab-corr-btn" onclick="switchTab('corr')">📊 Corrección</button>
+  <button class="tab" id="tab-foto-btn" onclick="switchTab('foto')">📸 Foto</button>
+</div>
+
+<div class="main">
+
+  <!-- TAB COMIDA -->
+  <div class="panel active" id="panel-comida">
+    <div class="section-title">Agregar al plato</div>
+    <div class="card">
+      <input type="text" id="foodName" placeholder="Nombre del alimento" onkeydown="if(event.key==='Enter')addFood()">
+      <div class="form-row">
+        <input type="number" id="foodCarbs" placeholder="Carbohidratos (g)" min="0" step="0.5" onkeydown="if(event.key==='Enter')addFood()">
+        <button class="btn-add" onclick="addFood()">+ Agregar</button>
+      </div>
+    </div>
+
+    <div class="quick-sub">Alimentos frecuentes</div>
+    <div class="cat-row" id="catRow"></div>
+    <div class="quick-row" id="quickRow"></div>
+
+    <div class="divider"></div>
+    <div class="section-title">Plato actual</div>
+    <div id="foodList"></div>
+
+    <div class="result-card">
+      <div class="result-top" id="resultTop"></div>
+      <div class="insulin-block">
+        <div class="insulin-label">Insulina rápida por comida</div>
+        <div class="insulin-num" id="insulinNum">—</div>
+        <div class="insulin-unit" id="insulinUnit">agregá alimentos para calcular</div>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Total carbohidratos</span>
+        <span class="result-val yellow" id="carbsTotal">0 g</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Alimentos en el plato</span>
+        <span class="result-val" id="foodCount">0</span>
+      </div>
+    </div>
+    <button class="btn-clear" onclick="clearAll()">🗑 Limpiar plato</button>
+    <div class="warning"><span>⚠️</span><span>Esta calculadora es de apoyo. Consultá siempre con tu médico los ajustes de dosis.</span></div>
+  </div>
+
+  <!-- TAB CORRECCIÓN -->
+  <div class="panel" id="panel-corr">
+    <div class="section-title">Calculadora de corrección</div>
+
+    <div class="corr-card">
+      <h3>¿Cuál es tu glucemia actual?</h3>
+      <p>Ingresá el valor de tu medición para calcular la corrección necesaria</p>
+      <div class="gluc-input-row">
+        <input type="number" id="glucInput" placeholder="ej: 180" min="40" max="400" oninput="calcCorr()">
+        <span class="gluc-unit">mg/dL</span>
+      </div>
+      <div id="corrResult" style="display:none" class="corr-result">
+        <span class="corr-result-label" id="corrLabel"></span>
+        <span class="corr-result-val" id="corrVal"></span>
+      </div>
+    </div>
+
+    <!-- RESUMEN TOTAL SI HAY COMIDA + CORRECCIÓN -->
+    <div id="totalCard" style="display:none" class="total-card">
+      <div class="total-top"></div>
+      <div class="total-block">
+        <div class="total-label">Total insulina rápida ahora</div>
+        <div class="total-num" id="totalNum">—</div>
+        <div class="total-unit">unidades de insulina rápida</div>
+      </div>
+      <div class="total-breakdown">
+        <div class="breakdown-row">
+          <span class="breakdown-label">Por comida (<span id="bCarbs">0</span>g carbs)</span>
+          <span class="breakdown-val yellow" id="bComida">0u</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">Por corrección</span>
+          <span class="breakdown-val purple" id="bCorr">0u</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="lenta-card">
+      <div class="lenta-icon">🌙</div>
+      <div class="lenta-info">
+        <h3>Insulina lenta</h3>
+        <p>Antes de dormir, todos los días</p>
+      </div>
+      <div class="lenta-dose" id="lentaDose">8u</div>
+    </div>
+
+    <div class="warning"><span>⚠️</span><span>La corrección es una estimación. No ajustes la dosis sin consultar con tu médico.</span></div>
+  </div>
+
+  <!-- TAB FOTO -->
+  <div class="panel" id="panel-foto">
+    <div class="section-title">Analizá tu plato con IA</div>
+    <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+    <input type="file" id="fileGallery" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+
+    <div id="photoZone" class="photo-zone">
+      <div style="font-size:38px;margin-bottom:9px">📸</div>
+      <h3>Analizá tu plato</h3>
+      <p>La IA identifica los alimentos y estima los carbohidratos</p>
+      <div class="photo-btns">
+        <button class="btn-camera" onclick="document.getElementById('fileCamera').click()">📷 Cámara</button>
+        <button class="btn-gallery" onclick="document.getElementById('fileGallery').click()">🖼 Galería</button>
+      </div>
+    </div>
+
+    <div id="previewWrap" class="preview-wrap" style="display:none">
+      <img id="previewImg" class="preview-img">
+      <button class="btn-rm-photo" onclick="removePhoto()">×</button>
+    </div>
+
+    <button class="btn-analyze" id="btnAnalyze" onclick="analyzePhoto()" disabled>🔍 Analizar con IA</button>
+
+    <div class="loading" id="loadingState">
+      <div class="spinner"></div>
+      <div style="font-size:14px;color:#8b8fa8">Analizando el plato...</div>
+    </div>
+    <div class="err-msg" id="errMsg"></div>
+
+    <div class="ai-card" id="aiCard">
+      <div class="ai-title">🤖 Análisis del plato</div>
+      <div id="aiItems"></div>
+      <div id="aiNote" class="ai-note"></div>
+      <div class="ai-total">
+        <span class="ai-total-label">Total carbohidratos</span>
+        <span class="ai-total-val" id="aiTotal">—</span>
+      </div>
+      <button class="btn-add-plate" onclick="addAIToPlate()">✅ Agregar al plato y calcular insulina</button>
+    </div>
+
+    <div class="warning" style="margin-top:0"><span>⚠️</span><span>La estimación por foto es aproximada. Revisá los valores antes de calcular tu dosis.</span></div>
+  </div>
+
+</div>
+
+<!-- MODAL CONFIG -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeConfig()">
+  <div class="modal">
+    <h3>Editar perfil</h3>
+    <p>Configurá tus parámetros personales de insulina</p>
+    <label>Gramos de carbs por 1u de insulina rápida</label>
+    <input type="number" id="cfgRatio" min="1" max="50" step="0.5" value="15">
+    <label>Cuánto baja la glucemia 1u de insulina (mg/dL)</label>
+    <input type="number" id="cfgCorr" min="10" max="200" step="5" value="50">
+    <label>Glucemia objetivo (mg/dL)</label>
+    <input type="number" id="cfgTarget" min="60" max="200" step="5" value="100">
+    <label>Dosis de insulina lenta (unidades, antes de dormir)</label>
+    <input type="number" id="cfgLenta" min="0" max="80" step="1" value="8">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeConfig()">Cancelar</button>
+      <button class="btn-save" onclick="saveConfig()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// PERFIL
+let cfg = { ratio: 15, corrFactor: 50, target: 100, lenta: 8 };
+
+const DB = {
+  "Desayuno":[
+    {name:"Medialunas ×2",carbs:32,emoji:"🥐"},{name:"Facturas ×1",carbs:28,emoji:"🍩"},
+    {name:"Tostadas ×2",carbs:26,emoji:"🍞"},{name:"Pan lactal ×2",carbs:24,emoji:"🍞"},
+    {name:"Galletitas dulces ×6",carbs:30,emoji:"🍪"},{name:"Galletitas de agua ×6",carbs:18,emoji:"🫓"},
+    {name:"Cereales 30g",carbs:25,emoji:"🥣"},{name:"Granola 40g",carbs:28,emoji:"🥣"},
+    {name:"Yogur 200g",carbs:16,emoji:"🫙"},{name:"Leche 200ml",carbs:10,emoji:"🥛"},
+    {name:"Jugo exprimido 200ml",carbs:20,emoji:"🍊"},{name:"Banana med.",carbs:27,emoji:"🍌"},
+    {name:"Manzana med.",carbs:21,emoji:"🍎"},{name:"Dulce de leche 1cdta",carbs:8,emoji:"🍯"},
+    {name:"Mermelada 1cdta",carbs:10,emoji:"🍓"},
+  ],
+  "Almuerzo":[
+    {name:"Arroz cocido 1 taza",carbs:45,emoji:"🍚"},{name:"Fideos cocidos 1 plato",carbs:55,emoji:"🍝"},
+    {name:"Ñoquis 200g",carbs:40,emoji:"🥔"},{name:"Papa hervida 1 med.",carbs:20,emoji:"🥔"},
+    {name:"Puré de papas",carbs:30,emoji:"🥔"},{name:"Milanesa (sola)",carbs:10,emoji:"🥩"},
+    {name:"Empanada ×1",carbs:25,emoji:"🫓"},{name:"Pizza 2 porciones",carbs:60,emoji:"🍕"},
+    {name:"Tarta de verdura",carbs:35,emoji:"🥧"},{name:"Locro 1 plato",carbs:40,emoji:"🍲"},
+    {name:"Lentejas 1 plato",carbs:35,emoji:"🫘"},{name:"Pan francés ×1",carbs:28,emoji:"🥖"},
+    {name:"Ensalada mixta",carbs:8,emoji:"🥗"},
+  ],
+  "Merienda":[
+    {name:"Mate c/azúcar",carbs:12,emoji:"🧉"},{name:"Mate amargo",carbs:0,emoji:"🧉"},
+    {name:"Té c/azúcar",carbs:8,emoji:"🍵"},{name:"Café c/leche 200ml",carbs:10,emoji:"☕"},
+    {name:"Medialunas ×2",carbs:32,emoji:"🥐"},{name:"Torta fritas ×2",carbs:30,emoji:"🫓"},
+    {name:"Scones ×2",carbs:34,emoji:"🧁"},{name:"Budín 1 porción",carbs:38,emoji:"🍰"},
+    {name:"Alfajor simple",carbs:32,emoji:"🍫"},{name:"Alfajor triple",carbs:45,emoji:"🍫"},
+    {name:"Chizitos/papas fritas",carbs:20,emoji:"🍟"},{name:"Fruta picada 1 taza",carbs:20,emoji:"🍓"},
+  ],
+  "Cena":[
+    {name:"Milanesa napolitana",carbs:15,emoji:"🥩"},{name:"Guiso de carne",carbs:40,emoji:"🍲"},
+    {name:"Bife c/papas",carbs:22,emoji:"🥩"},{name:"Fideos c/salsa",carbs:58,emoji:"🍝"},
+    {name:"Sopa de fideos",carbs:25,emoji:"🍜"},{name:"Pizza 2 porc.",carbs:60,emoji:"🍕"},
+    {name:"Hamburguesa c/pan",carbs:38,emoji:"🍔"},{name:"Pebete ×1",carbs:30,emoji:"🌮"},
+    {name:"Sorrentinos ×8",carbs:48,emoji:"🫙"},{name:"Tarta pascualina",carbs:30,emoji:"🥧"},
+    {name:"Humita",carbs:28,emoji:"🌽"},{name:"Batata hervida 1 med.",carbs:26,emoji:"🍠"},
+  ],
+  "Bebidas":[
+    {name:"Gaseosa 250ml",carbs:27,emoji:"🥤"},{name:"Gaseosa diet 250ml",carbs:0,emoji:"🥤"},
+    {name:"Jugo caja 200ml",carbs:22,emoji:"🧃"},{name:"Agua saborizada 500ml",carbs:14,emoji:"💧"},
+    {name:"Cerveza 330ml",carbs:13,emoji:"🍺"},{name:"Vino tinto 150ml",carbs:4,emoji:"🍷"},
+    {name:"Licuado de fruta 300ml",carbs:30,emoji:"🥤"},{name:"Chocolatada 200ml",carbs:24,emoji:"🍫"},
+  ]
+};
+
+let foods=[], activeCat="Desayuno", photoB64=null, aiData=null;
+
+function emoji(n){
+  n=(n||"").toLowerCase();
+  if(n.includes("arroz"))return"🍚";if(n.includes("fideo")||n.includes("pasta"))return"🍝";
+  if(n.includes("pan"))return"🍞";if(n.includes("papa"))return"🥔";
+  if(n.includes("manzana"))return"🍎";if(n.includes("banana"))return"🍌";
+  if(n.includes("leche"))return"🥛";if(n.includes("media"))return"🥐";
+  if(n.includes("pizza"))return"🍕";if(n.includes("milanesa"))return"🥩";
+  if(n.includes("empanada"))return"🫓";if(n.includes("mate"))return"🧉";
+  return"🍽";
+}
+
+function updatePerfilDisplay(){
+  document.getElementById("pRatio").textContent=`1u / ${cfg.ratio}g carbs`;
+  document.getElementById("pCorr").textContent=`1u baja ${cfg.corrFactor} mg/dL`;
+  document.getElementById("pLenta").textContent=`${cfg.lenta} unidades`;
+  document.getElementById("lentaDose").textContent=`${cfg.lenta}u`;
+}
+
+function renderCats(){
+  document.getElementById("catRow").innerHTML=Object.keys(DB).map(c=>
+    `<div class="cat-pill${c===activeCat?" active":""}" onclick="selectCat('${c}')">${c}</div>`
+  ).join("");
+}
+function selectCat(c){activeCat=c;renderCats();renderQuick();}
+function renderQuick(){
+  document.getElementById("quickRow").innerHTML=DB[activeCat].map(f=>
+    `<div class="q-pill" onclick="addQuick('${f.name.replace(/'/g,"\\'")}',${f.carbs},'${f.emoji}')">${f.emoji} ${f.name} <span class="g">${f.carbs}g</span></div>`
+  ).join("");
+}
+function addQuick(name,carbs,em){foods.push({name,carbs,emoji:em,source:""});renderFoods();}
+
+function addFood(){
+  const n=document.getElementById("foodName").value.trim();
+  const c=parseFloat(document.getElementById("foodCarbs").value);
+  if(!n||isNaN(c)||c<0)return;
+  foods.push({name:n,carbs:c,emoji:emoji(n),source:""});
+  document.getElementById("foodName").value="";
+  document.getElementById("foodCarbs").value="";
+  renderFoods();
+}
+function removeFood(i){foods.splice(i,1);renderFoods();}
+function clearAll(){foods=[];renderFoods();}
+
+function renderFoods(){
+  const total=foods.reduce((s,f)=>s+f.carbs,0);
+  const units=total/cfg.ratio;
+  const el=document.getElementById("foodList");
+  if(foods.length===0){
+    el.innerHTML=`<div class="empty"><div style="font-size:30px;margin-bottom:7px">🍽</div>Todavía no agregaste alimentos.<br>Usá el formulario o los accesos rápidos.</div>`;
+  } else {
+    el.innerHTML=foods.map((f,i)=>`
+      <div class="food-item">
+        <div class="food-icon">${f.emoji}</div>
+        <div class="food-info">
+          <div class="food-name">${f.name}</div>
+          <div class="food-carbs"><span>${f.carbs}g</span> de carbohidratos</div>
+          ${f.source?`<div class="food-source">${f.source}</div>`:""}
+        </div>
+        <button class="btn-rm" onclick="removeFood(${i})">×</button>
+      </div>`).join("");
+  }
+  document.getElementById("carbsTotal").textContent=total>0?`${total.toFixed(1)} g`:"0 g";
+  document.getElementById("foodCount").textContent=foods.length;
+  const hasData=foods.length>0;
+  document.getElementById("resultTop").classList.toggle("on",hasData);
+  document.getElementById("insulinNum").textContent=hasData?(Number.isInteger(units)?units:units.toFixed(1)):"—";
+  document.getElementById("insulinUnit").textContent=hasData?`unidad${units!==1?"es":""} de insulina rápida`:"agregá alimentos para calcular";
+  // actualizar resumen en corrección
+  calcCorr();
+}
+
+function calcCorr(){
+  const gluc=parseFloat(document.getElementById("glucInput").value);
+  const corrDiv=document.getElementById("corrResult");
+  const totalCard=document.getElementById("totalCard");
+
+  if(isNaN(gluc)||gluc<=0){corrDiv.style.display="none";totalCard.style.display="none";return;}
+
+  const diff=gluc-cfg.target;
+  const corrUnits=diff/cfg.corrFactor;
+  corrDiv.style.display="flex";
+
+  if(Math.abs(diff)<=10){
+    corrDiv.className="corr-result ok";
+    document.getElementById("corrLabel").textContent="✅ Glucemia en rango";
+    document.getElementById("corrVal").textContent="Sin corrección";
+  } else if(diff>0){
+    const u=Math.round(corrUnits*10)/10;
+    corrDiv.className="corr-result high";
+    document.getElementById("corrLabel").textContent=`📈 Alta (+${diff} mg/dL sobre objetivo)`;
+    document.getElementById("corrVal").textContent=`+${u}u`;
+  } else {
+    corrDiv.className="corr-result low";
+    document.getElementById("corrLabel").textContent=`📉 Baja (${diff} mg/dL bajo objetivo)`;
+    document.getElementById("corrVal").textContent="No corregir";
+  }
+
+  // resumen total si hay comida
+  const totalCarbs=foods.reduce((s,f)=>s+f.carbs,0);
+  if(foods.length>0 && !isNaN(gluc) && gluc>0){
+    totalCard.style.display="block";
+    const comidaU=totalCarbs/cfg.ratio;
+    const corrU=diff>10?Math.round((diff/cfg.corrFactor)*10)/10:0;
+    const total=comidaU+corrU;
+    document.getElementById("totalNum").textContent=Number.isInteger(total)?total:total.toFixed(1);
+    document.getElementById("bCarbs").textContent=totalCarbs.toFixed(1);
+    document.getElementById("bComida").textContent=(Number.isInteger(comidaU)?comidaU:comidaU.toFixed(1))+"u";
+    document.getElementById("bCorr").textContent=(corrU>0?"+":"")+corrU+"u";
+  } else {
+    totalCard.style.display="none";
+  }
+}
+
+function switchTab(t){
+  ["comida","corr","foto"].forEach(x=>{
+    document.getElementById("panel-"+x).classList.toggle("active",x===t);
+    document.getElementById("tab-"+x+"-btn").classList.toggle("active",x===t);
+  });
+}
+
+function handlePhoto(e){
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    photoB64=ev.target.result.split(",")[1];
+    document.getElementById("previewImg").src=ev.target.result;
+    document.getElementById("previewWrap").style.display="block";
+    document.getElementById("photoZone").style.display="none";
+    document.getElementById("btnAnalyze").disabled=false;
+    document.getElementById("aiCard").classList.remove("on");
+    document.getElementById("errMsg").classList.remove("on");
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(){
+  photoB64=null;aiData=null;
+  document.getElementById("previewWrap").style.display="none";
+  document.getElementById("photoZone").style.display="block";
+  document.getElementById("btnAnalyze").disabled=true;
+  document.getElementById("aiCard").classList.remove("on");
+  document.getElementById("errMsg").classList.remove("on");
+  document.getElementById("fileCamera").value="";
+  document.getElementById("fileGallery").value="";
+}
+
+async function analyzePhoto(){
+  if(!photoB64)return;
+  document.getElementById("loadingState").classList.add("on");
+  document.getElementById("aiCard").classList.remove("on");
+  document.getElementById("errMsg").classList.remove("on");
+  document.getElementById("btnAnalyze").disabled=true;
+  try {
+    const res=await fetch("/.netlify/functions/analyze",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        system:`Sos nutricionista especializado en diabetes tipo 1 para Argentina. Respondé SOLO con JSON sin backticks: {"alimentos":[{"nombre":"...","porcion":"...","carbohidratos":número}],"total":número,"nota":"..."}. Porciones típicas argentinas. carbohidratos=entero.`,
+        messages:[{role:"user",content:[
+          {type:"image",source:{type:"base64",media_type:"image/jpeg",data:photoB64}},
+          {type:"text",text:"Analizá este plato y estimá los carbohidratos."}
+        ]}]
+      })
+    });
+    const data=await res.json();
+    const raw=data.content.map(b=>b.text||"").join("");
+    aiData=JSON.parse(raw.replace(/```json|```/g,"").trim());
+    renderAI();
+  } catch(err){
+    document.getElementById("errMsg").textContent="No se pudo analizar. Para que la IA funcione, el archivo debe estar en un servidor (no abierto directo desde el celular).";
+    document.getElementById("errMsg").classList.add("on");
+  } finally {
+    document.getElementById("loadingState").classList.remove("on");
+    document.getElementById("btnAnalyze").disabled=false;
+  }
+}
+
+function renderAI(){
+  document.getElementById("aiItems").innerHTML=aiData.alimentos.map(a=>`
+    <div class="ai-row">
+      <div><div class="ai-food-name">${a.nombre}</div><div class="ai-food-portion">${a.porcion}</div></div>
+      <div class="ai-food-carbs">${a.carbohidratos}g</div>
+    </div>`).join("");
+  document.getElementById("aiNote").textContent=aiData.nota?"💬 "+aiData.nota:"";
+  document.getElementById("aiTotal").textContent=aiData.total+" g";
+  document.getElementById("aiCard").classList.add("on");
+}
+
+function addAIToPlate(){
+  if(!aiData)return;
+  aiData.alimentos.forEach(a=>foods.push({name:a.nombre,carbs:a.carbohidratos,emoji:emoji(a.nombre),source:"📸 foto"}));
+  renderFoods();switchTab("comida");
+}
+
+function openConfig(){
+  document.getElementById("cfgRatio").value=cfg.ratio;
+  document.getElementById("cfgCorr").value=cfg.corrFactor;
+  document.getElementById("cfgTarget").value=cfg.target;
+  document.getElementById("cfgLenta").value=cfg.lenta;
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeConfig(){document.getElementById("modalOverlay").classList.remove("open");}
+function saveConfig(){
+  cfg.ratio=parseFloat(document.getElementById("cfgRatio").value)||15;
+  cfg.corrFactor=parseFloat(document.getElementById("cfgCorr").value)||50;
+  cfg.target=parseFloat(document.getElementById("cfgTarget").value)||100;
+  cfg.lenta=parseFloat(document.getElementById("cfgLenta").value)||8;
+  updatePerfilDisplay();renderFoods();closeConfig();
+}
+
+renderCats();renderQuick();renderFoods();updatePerfilDisplay();
+</script>
+</body>
+</html>
