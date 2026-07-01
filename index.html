@@ -396,8 +396,6 @@ input::placeholder{color:#5a5e78}
     <input type="number" id="cfgTarget" min="60" max="200" step="5" value="100">
     <label>Dosis de insulina lenta (unidades, antes de dormir)</label>
     <input type="number" id="cfgLenta" min="0" max="80" step="1" value="8">
-    <label style="margin-top:14px">PIN de acceso</label>
-    <button class="btn-save" style="margin-top:6px;font-size:13px;padding:9px" onclick="closeConfig();setTimeout(openPinSetup,200)">🔐 Cambiar PIN</button>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeConfig()">Cancelar</button>
       <button class="btn-save" onclick="saveConfig()">Guardar</button>
@@ -670,22 +668,10 @@ function saveConfig(){
 
 
 // ── PIN ──────────────────────────────────────────────────
+const PIN_CORRECTO = '1612';
 let pinBuffer = '';
-let pinMode = 'check'; // 'check' | 'setup1' | 'setup2'
-let pinTemp = '';
 
 function pinInit(){
-  const stored = localStorage.getItem('insulina_pin');
-  if(!stored){
-    pinMode = 'setup1';
-    document.getElementById('pinTitle').textContent = 'Crear PIN';
-    document.getElementById('pinSub').textContent = 'Elegí un PIN de 4 dígitos';
-    document.getElementById('pinSetupHint').textContent = 'Este PIN protegerá el acceso a la app';
-  } else {
-    pinMode = 'check';
-    document.getElementById('pinTitle').textContent = 'Insulina';
-    document.getElementById('pinSub').textContent = 'Ingresá tu PIN';
-  }
   pinBuffer = '';
   pinRenderDots();
 }
@@ -711,48 +697,13 @@ function pinRenderDots(state){
 }
 
 function pinCheck(){
-  if(pinMode === 'check'){
-    const stored = localStorage.getItem('insulina_pin');
-    if(pinBuffer === stored){
-      document.getElementById('pinOverlay').style.display = 'none';
-    } else {
-      pinRenderDots('error');
-      document.getElementById('pinError').textContent = 'PIN incorrecto';
-      setTimeout(()=>{ pinBuffer=''; pinRenderDots(); document.getElementById('pinError').textContent=''; }, 1000);
-    }
-  } else if(pinMode === 'setup1'){
-    pinTemp = pinBuffer;
-    pinBuffer = '';
-    pinMode = 'setup2';
-    document.getElementById('pinSub').textContent = 'Repetí el PIN para confirmar';
-    document.getElementById('pinSetupHint').textContent = '';
-    pinRenderDots();
-  } else if(pinMode === 'setup2'){
-    if(pinBuffer === pinTemp){
-      localStorage.setItem('insulina_pin', pinBuffer);
-      document.getElementById('pinOverlay').style.display = 'none';
-    } else {
-      pinRenderDots('error');
-      document.getElementById('pinError').textContent = 'Los PINs no coinciden';
-      setTimeout(()=>{
-        pinBuffer=''; pinTemp=''; pinMode='setup1';
-        document.getElementById('pinSub').textContent = 'Elegí un PIN de 4 dígitos';
-        document.getElementById('pinSetupHint').textContent = 'Este PIN protegerá el acceso a la app';
-        document.getElementById('pinError').textContent = '';
-        pinRenderDots();
-      }, 1000);
-    }
+  if(pinBuffer === PIN_CORRECTO){
+    document.getElementById('pinOverlay').style.display = 'none';
+  } else {
+    pinRenderDots('error');
+    document.getElementById('pinError').textContent = 'PIN incorrecto';
+    setTimeout(()=>{ pinBuffer=''; pinRenderDots(); document.getElementById('pinError').textContent=''; }, 1000);
   }
-}
-
-function openPinSetup(){
-  pinBuffer=''; pinTemp=''; pinMode='setup1';
-  document.getElementById('pinTitle').textContent = 'Cambiar PIN';
-  document.getElementById('pinSub').textContent = 'Elegí un nuevo PIN de 4 dígitos';
-  document.getElementById('pinSetupHint').textContent = '';
-  document.getElementById('pinError').textContent = '';
-  document.getElementById('pinOverlay').style.display = 'flex';
-  pinRenderDots();
 }
 
 renderCats();renderQuick();renderFoods();updatePerfilDisplay();
