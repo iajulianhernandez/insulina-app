@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Insulina</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:hwght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0f1117;color:#e8e9f0;font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:56px}
@@ -359,7 +359,7 @@ input::placeholder{color:#5a5e78}
 
 <script>
 // PERFIL
-let cfg = { ratio: 15, corrFactor: 50, target: 115, lenta: 8 };
+let cfg = Object.assign({ ratio: 15, corrFactor: 50, target: 115, lenta: 8 }, JSON.parse(localStorage.getItem('insulina_cfg') || 'null') || {});
 
 const DB = {
   "Desayuno":[
@@ -614,8 +614,9 @@ function closeConfig(){document.getElementById("modalOverlay").classList.remove(
 function saveConfig(){
   cfg.ratio=parseFloat(document.getElementById("cfgRatio").value)||15;
   cfg.corrFactor=parseFloat(document.getElementById("cfgCorr").value)||50;
-  cfg.target=parseFloat(document.getElementById("cfgTarget").value)||100;
+  cfg.target=parseFloat(document.getElementById("cfgTarget").value)||115;
   cfg.lenta=parseFloat(document.getElementById("cfgLenta").value)||8;
+  localStorage.setItem('insulina_cfg', JSON.stringify(cfg));
   updatePerfilDisplay();renderFoods();closeConfig();
 }
 
